@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chain-server
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: chain-server
+  template:
+    metadata:
+      labels:
+        app: chain-server
+    spec:
+      serviceAccountName: chain-server-sa
+      containers:
+        - name: chain
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 8180
+            - containerPort: 8050
+          env:
+            - name: CHAIN_URI
+              value: "{{ .Values.env.CHAIN_URI }}"
+            - name: STORE_URI
+              value: "{{ .Values.env.STORE_URI }}"
+            - name: S3_ENDPOINT_URL
+              value: "{{ .Values.env.S3_ENDPOINT_URL }}"
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: chain-secret
+                  key: SECRET_KEY
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: chain-secret
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: chain-secret
+                  key: AWS_SECRET_ACCESS_KEY

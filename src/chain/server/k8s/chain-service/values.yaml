@@ -1,0 +1,18 @@
+projectId: "example-prj"
+component: "mlflow" # mlflow / optuna / chaser
+
+image:
+  repository: "mlflow"
+  tag: "3.12"
+  pullPolicy: IfNotPresent
+
+ports:
+  http: 5000
+  grpc: 13000 # used only for optuna
+
+env:
+  S3_ENDPOINT_URL: "http://0.0.0.0:9000"
+  AWS_ACCESS_KEY_ID: "example"
+  AWS_SECRET_ACCESS_KEY: "example"
+  DB_STORAGE: "sqlite:///example.db"
+  S3_PATH: "s3://mlflow-artifacts/example"

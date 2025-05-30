@@ -1,0 +1,18 @@
+line-length = 120
+extend-include = [ "*.ipynb" ]
+exclude = [ "*.egg-info", ".pytest_cache", "volumes" ]
+fix = true
+lint.select = [
+  "B",   # flake8-bugbear
+  "C90", # mccabe
+  "E",   # pycodestyle error
+  "I",   # isort
+  "N",   # pep8-naming
+  "S",   # flake8-bandit
+  "SIM", # flake8-simplify
+  #"D", # pydocstyle
+  "UP", # pyupgrade
+  "W",  # pycodestyle warning
+]
+lint.fixable = [ "ALL" ]
+lint.pydocstyle.convention = "google"

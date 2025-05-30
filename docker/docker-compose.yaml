@@ -1,0 +1,35 @@
+services:
+  dev:
+    tty: true
+    stdin_open: true
+    restart: unless-stopped
+    container_name: dev
+    # イメージから始める時
+    #image: ubuntu:24.04
+    # dockerfileのビルドを行う時
+    build:
+      context: .
+      dockerfile: dockerfile
+      target: final # final / vnc
+      args:
+        IMAGE: ${IMAGE:-ubuntu:22.04}
+        VERSION: ${VERSION:-0.0.0}
+        UNAME: ${UNAME:-ubuntu}
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+        PASS: ${PASS:-ubuntu}
+    volumes:
+      - /home/${UNAME:-ubuntu}:/home/${UNAME:-ubuntu}
+      # NFSを接続している場合
+      # - /mnt/nfs:/mnt/nfs
+    working_dir: /home/${UNAME:-ubuntu}
+    ports:
+      - 6080:6080
+    # GPUを使う場合は以下のコメントアウトを解除
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1 # 枚数
+    #           capabilities: [gpu]

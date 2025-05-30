@@ -1,0 +1,14 @@
+coverage>=7.6.4
+gitpython>=3.1.44
+mypy>=1.13.0
+pathspec>=0.12.1
+pre-commit>=4.0.1
+pydantic>=2.9.2
+pytest>=8.3.3
+python-on-whales>=0.75.1
+requires>=0.10.5
+ruff>=0.7.3
+toml>=0.10.2
+tomlkit>=0.13.2
+tox>=4.24.1
+yamllint>=1.35.1

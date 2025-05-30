@@ -1,0 +1,11 @@
+{
+	"template": {
+		"scope": "python",
+		"prefix": "temp",
+		"body": [
+			"if __name__ == '__main__':",
+			"    pass"
+		],
+		"description": "sample snippet."
+	}
+}

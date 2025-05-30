@@ -1,0 +1,10 @@
+#!/bin/bash
+if [ -n "$1" ] && [ -d "$1/.vscode/scripts" ]; then
+	chmod +x "$1/.vscode/scripts/dockle"
+	chmod +x "$1/.vscode/scripts/trivy"
+	chmod +x "$1/.vscode/scripts/terraform"
+	export PATH="$1/.vscode/scripts:$PATH"
+	echo "custom cmd found and updated PATH($1/.vscode/scripts)."
+else
+	echo "no custom cmd found."
+fi

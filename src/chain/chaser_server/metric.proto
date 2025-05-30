@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package metric;
+
+// メトリクスデータを送るためのリクエストメッセージ
+message MetricRequest {
+  string prj_id = 1;
+  string experiment_id = 2;
+  string run_uuid = 3;
+  string key = 4;
+  int32 dim = 5;              // ベクトルの次元数（1Dのみを想定）
+  bytes value = 6;            // ベクトルのバイナリデータ（numpy.ndarray.tobytes()など）
+}
+
+// レスポンス（成功メッセージ）
+message MetricResponse {
+  string status = 1;          // 例: "ok"
+}
+
+// サービス定義
+service MetricService {
+  rpc SendMetric(MetricRequest) returns (MetricResponse);
+  rpc SendMetrics(stream MetricRequest) returns (MetricResponse);
+}
+
+
+//python -m grpc_tools.protoc \
+//  -I src/chain/proto \
+//  --python_out=src/chain/proto \
+//  --grpc_python_out=src/chain/proto \
+//  src/chain/proto/metric.proto

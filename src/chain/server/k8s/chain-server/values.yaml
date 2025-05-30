@@ -1,0 +1,19 @@
+replicaCount: 1
+
+image:
+  repository: your-image-name
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  loadBalancerIP: "0.0.0.0"
+
+env:
+  CHAIN_URI: "http://0.0.0.0:9000"
+  STORE_URI: "sqlite:///example.db"
+  S3_ENDPOINT_URL: "http://0.0.0.0:9000"
+
+secrets:
+  SECRET_KEY: "example"
+  AWS_ACCESS_KEY_ID: "example"
+  AWS_SECRET_ACCESS_KEY: "example"

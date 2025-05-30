@@ -1,0 +1,65 @@
+[build-system]
+build-backend = "hatchling.build"
+requires = [ "hatchling" ]
+
+[project]
+name = "chain"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+  { name = "kakera-lab", email = "97671115+kakera-lab@users.noreply.github.com" },
+]
+requires-python = ">=3.12.9"
+classifiers = [
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+]
+dependencies = [
+  "boto3>=1.38.11",
+  "dvc>=3.59.1",
+  "grpcio>=1.71",
+  "grpcio-tools>=1.71",
+  "hera>=5.20.1",
+  "hydra-core>=1.3.2",
+  "mattermostdriver>=7.3.2",
+  "mlflow>=2.21.2",
+  "optuna>=4.2.1",
+  "plotly>=6.0.1",
+  "protobuf>=5.29.4",
+  "psutil>=7",
+  "pymysql>=1.1.1",
+  "pynvml>=12",
+  "python-daemon>=3.1.2",
+  "python-dotenv>=1.1",
+  "python-on-whales>=0.76.1",
+  "toml",
+  "tomlkit>=0.13.2",
+]
+
+scripts.chain = "chain.bin.chain:main"
+
+[dependency-groups]
+dev = [
+  "coverage>=7.6.4",
+  "mypy>=1.13",
+  "pre-commit>=4.0.1",
+  "pydantic>=2.9.2",
+  "pytest>=8.3.3",
+  "python-on-whales>=0.75.1",
+  "requires>=0.10.5",
+  "ruff>=0.7.3",
+  "toml>=0.10.2",
+  "tox>=4.24.1",
+  "yamllint>=1.35.1",
+]
+docs = [
+  "myst-parser>=4",
+  "sphinx>=8.1.3",
+  "sphinx-autobuild>=2024.10.3",
+  "sphinx-book-theme>=1.1.3",
+  "sphinx-multiversion>=0.2.4",
+]
+ansible = [ "ansible>=10.6", "ansible-creator>=24.10.1", "ansible-lint>=24.9.2" ]
+

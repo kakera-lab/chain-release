@@ -1,0 +1,149 @@
+ARG IMAGE="ubuntu:22.04"
+
+# STAGE 1: for base ----->
+FROM ${IMAGE} AS base
+
+ARG VERSION="0.0.0"
+LABEL version=${VERSION}
+
+ENV PYTHON_VERSION="3.12.9" \
+    DEBIAN_FRONTEND=noninteractive \
+    TZ=Asia/Tokyo
+
+RUN --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    --mount=type=cache,target=/var/cache/apt,sharing=locked \
+<<EOF
+apt-get update -y
+apt-get upgrade -y
+apt-get install -y --no-install-recommends \
+    ca-certificates \
+    curl \
+    git \
+    gnupg2 \
+    sudo \
+    tar \
+    unzip \
+    xz-utils \
+    zip \
+    build-essential \
+    libbz2-dev \
+    libffi-dev \
+    liblzma-dev \
+    libncurses5-dev \
+    libreadline-dev \
+    libsqlite3-dev \
+    libssl-dev \
+    libxml2-dev \
+    libxmlsec1-dev \
+    tk-dev \
+    zlib1g-dev
+apt-get autoremove -y
+apt-get clean -y
+rm -rf /var/lib/apt/lists/*
+EOF
+
+CMD ["/bin/bash"]
+# <-----
+
+
+# STAGE 2: user ----->
+FROM ${IMAGE} AS user
+
+ARG UNAME="ubuntu"
+ARG UID=1000
+ARG GID=1000
+ARG PASS
+
+RUN groupadd -g ${GID} ${UNAME} && \
+    useradd -u ${UID} -g ${UNAME} -G sudo -m ${UNAME} -s /bin/bash && \
+    echo "${UNAME} ALL=(ALL) ALL" >> /etc/sudoers && \
+    echo "${UNAME}:${PASS}" | chpasswd
+
+CMD ["/bin/bash"]
+# <-----
+
+
+# STAGE 3: final ----->
+FROM base AS final
+
+ARG UNAME
+ARG UID
+ARG GID
+
+RUN groupadd -g ${GID} ${UNAME} && \
+    useradd -u ${UID} -g ${UNAME} -G sudo -m ${UNAME} -s /bin/bash && \
+    echo "${UNAME} ALL=(ALL) ALL" >> /etc/sudoers
+
+COPY --from=user /etc/shadow /etc/shadow
+
+USER ${UNAME}
+WORKDIR /home/${UNAME}
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
+    echo 'eval "$(uv generate-shell-completion bash)"' >> ~/.bashrc
+
+CMD ["/bin/bash"]
+# <-----
+
+
+# STAGE 4: for vnc ----->
+FROM base AS vnc
+
+ARG UNAME
+ARG UID
+ARG GID
+
+ARG VNC_PASS="123456"
+ENV VNC_DISPLAY="1" \
+    VNC_RESOLUTION="1920x1080" \
+    VNC_DEPTH="24" \
+    WEBSOCKIFY_PORT="6080" \
+    NOVNC_WEB_DIR="/usr/share/novnc" \
+    VNC_SESSION_STARTED=True
+
+RUN --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    --mount=type=cache,target=/var/cache/apt,sharing=locked \
+<<EOF
+apt-get update -y
+apt-get upgrade -y
+apt-get install -y --no-install-recommends \
+    lxde \
+	tigervnc-standalone-server \
+	tigervnc-common \
+	tigervnc-tools \
+	novnc \
+	websockify
+apt-get autoremove -y
+apt-get clean -y
+rm -rf /var/lib/apt/lists/*
+EOF
+
+RUN cat <<EOF > /usr/local/bin/vnc.sh
+#!/bin/bash
+if \$VNC_SESSION_STARTED_CMD; then
+    vncserver :\$VNC_DISPLAY -geometry "\$VNC_RESOLUTION" -depth "\$VNC_DEPTH" -fg &
+    websockify --web="\$NOVNC_WEB_DIR" "\$WEBSOCKIFY_PORT" localhost:\$((5900 + \$VNC_DISPLAY)) &
+fi
+exec /bin/bash
+EOF
+
+RUN groupadd -g ${GID} ${UNAME} && \
+    useradd -u ${UID} -g ${UNAME} -G sudo -m ${UNAME} -s /bin/bash && \
+    echo "${UNAME} ALL=(ALL) ALL" >> /etc/sudoers && \
+    mkdir -p /home/${UNAME}/.vnc && \
+    echo "$VNC_PASS" | vncpasswd -f > /home/${UNAME}/.vnc/passwd && \
+    chmod 755 /usr/local/bin/vnc.sh && \
+    chmod 600 /home/${UNAME}/.vnc/passwd && \
+    chown ${UNAME}:${UNAME} /home/${UNAME}/.vnc /home/${UNAME}/.vnc/passwd /usr/local/bin/vnc.sh && \
+    rm -f /usr/share/applications/lxde-x-www-browser.desktop
+
+COPY --from=user /etc/shadow /etc/shadow
+
+USER ${UNAME}
+WORKDIR /home/${UNAME}
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
+    echo 'eval "$(uv generate-shell-completion bash)"' >> ~/.bashrc
+
+EXPOSE 6080
+
+CMD ["/usr/local/bin/vnc.sh"]
+# <-----

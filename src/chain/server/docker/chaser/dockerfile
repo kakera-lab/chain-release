@@ -1,0 +1,10 @@
+FROM python:3.12-slim
+ENV DEBIAN_FRONTEND=noninteractive \
+    TZ=Asia/Tokyo
+WORKDIR /app
+RUN pip install flask flask-sqlalchemy pymysql boto3 gunicorn numpy dash plotly setuptools dash-bootstrap-components grpcio protobuf aiofiles
+# chain sever コンテナ基準
+COPY ./app .
+COPY ./chaser_server ./chaser
+EXPOSE 8050
+CMD ["gunicorn", "app:server", "--workers", "1", "-b", "0.0.0.0:8050"]

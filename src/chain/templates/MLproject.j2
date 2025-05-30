@@ -1,0 +1,19 @@
+# https://mlflow.org/docs/latest/projects.html#
+name: {{ prj_name }}
+
+docker_env:
+  image: 10.40.8.253:8500/base.ubuntu.2404:0.1.0
+
+  # バイナリを指定したい場合に設定する。
+  # platform: linux/amd64,linux/arm64
+
+  # ${PWD}はMLprojectがあるPath
+  #volumes:
+  # - ${PWD}:/app
+
+entry_points:
+  main:
+    command: "uv run main.py"
+  # パラメーターを設定するなら
+  #  parameters:
+  #    param: { type: str, default: "" }

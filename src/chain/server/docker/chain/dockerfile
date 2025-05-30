@@ -1,0 +1,12 @@
+FROM python:3.12-slim
+ENV DEBIAN_FRONTEND=noninteractive \
+    TZ=Asia/Tokyo
+WORKDIR /app
+RUN pip install --no-cache-dir flask flask-login flask-oauthlib flask-sqlalchemy docker pymysql boto3 gunicorn
+COPY ./server/docker/chain/app /app
+COPY ./server/docker/mlflow /mlflow
+COPY ./server/docker/optuna /optuna
+COPY ./server/docker/chaser /chaser
+COPY ./chaser_server /chaser/chaser_server
+EXPOSE 8180 8050
+CMD ["gunicorn", "app:app", "--workers", "1", "-b", "0.0.0.0:8180"]

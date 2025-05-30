@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Chain Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .card { border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body class="bg-light p-4">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>🧪 プロジェクト一覧</h2>
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addModal">＋追加</button>
+        </div>
+
+        <div class="row">
+            {% for project in projects %}
+                <div class="col-md-6 mb-4">
+                    <div class="card p-3">
+                        <h4 class="text-dark">{{ project['name'] }}</h4>
+                        <p class="text-secondary">Project ID: {{ project['id'] }}</p>
+                        <div class="row g-2 mt-2">
+                            <!-- 上段：アクセスキーと削除 -->
+                            <div class="col-md-6">
+                                <button class="btn btn-info w-100" data-bs-toggle="modal" data-bs-target="#accessKeyModal"
+                                        data-prj-id="{{ project['id'] }}"
+                                        mlflow-uri="{{ project['mlflow-uri'] }}"
+                                        optuna-uri="{{ project['optuna-uri'] }}"
+                                        dvc-uri="{{ project['dvc-uri'] }}"
+                                        chaser-uri="{{ project['chaser-uri'] }}">
+                                    アクセスキー
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <button class="btn btn-danger w-100"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#removeConfirmModal"
+                                        data-prj-id="{{ project['id'] }}"
+                                        data-prj-name="{{ project['name'] }}">
+                                    削除
+                                </button>
+                            </div>
+
+                            <!-- 下段：MLFlow / Optuna / Chaser -->
+                            <div class="col-md-4">
+                                <a href="{{ url_for('mlflow_server', prj_id=project['id']) }}" class="btn btn-success w-100">MLFlow</a>
+                            </div>
+                            <div class="col-md-4">
+                                <a href="{{ url_for('optuna_server', prj_id=project['id']) }}" class="btn btn-success w-100">Optuna</a>
+                            </div>
+                            <div class="col-md-4">
+                                <a href="{{ url_for('chaser_server', prj_id=project['id']) }}" class="btn btn-success w-100">Chaser</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- モーダル：追加 -->
+    <div class="modal fade" id="addModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <form method="post" action="{{ url_for('add_project') }}" class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">新しいプロジェクトを追加</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" name="prj_name" class="form-control" placeholder="プロジェクト名を入力" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">追加</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- モーダル：アクセスキー -->
+    <div class="modal fade" id="accessKeyModal" tabindex="-1" aria-labelledby="accessKeyModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="accessKeyModalLabel">アクセスキーをコピー</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="閉じる"></button>
+                </div>
+                <div class="modal-body">
+                    {% for title, key in [("MLflow Tracking URI", "mlflow"), ("Chain Tracking URI","chaser"), ("Optuna Tracking URI", "optuna"), ("DVC Remote URI", "dvc")] %}
+                        <div class="mb-3">
+                            <label class="form-label">{{ title }}</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="projIdInput-{{ key }}" readonly>
+                                <button class="btn btn-outline-secondary" onclick="copyToClipboard('{{ key }}')">コピー</button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 削除確認モーダル -->
+    <div class="modal fade" id="removeConfirmModal" tabindex="-1" aria-labelledby="removeConfirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <form method="POST" action="{{ url_for('remove_project') }}">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="removeConfirmModalLabel">プロジェクトの削除確認</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="閉じる"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p><strong id="removeTargetName"></strong> を削除してもよろしいですか？</p>
+                        <input type="hidden" name="prj_id" id="removeTargetId">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                        <button type="submit" class="btn btn-danger">削除実行</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    const accessKeyModal = document.getElementById('accessKeyModal');
+    accessKeyModal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const dataprojid = button.getAttribute('data-prj-id');
+        const mlflowuri = button.getAttribute('mlflow-uri');
+        const optunauri = button.getAttribute('optuna-uri');
+        const dvcuri = button.getAttribute('dvc-uri');
+        const chaseruri = button.getAttribute('chaser-uri');
+        // それぞれの用途に応じたIDを仮に組み立てる例
+        document.getElementById('projIdInput-mlflow').value = `${mlflowuri}`;
+        document.getElementById('projIdInput-optuna').value = `${optunauri}`;
+        document.getElementById('projIdInput-dvc').value = `${dvcuri}`;
+        document.getElementById('projIdInput-chaser').value = `${chaseruri}`;
+    });
+
+    function copyToClipboard(key) {
+        const input = document.getElementById(`projIdInput-${key}`);
+        input.select();
+        input.setSelectionRange(0, 99999);
+        document.execCommand("copy");
+        alert(`${key.toUpperCase()} をコピーしました: ` + input.value);
+    }
+
+    const removeModal = document.getElementById('removeConfirmModal');
+    removeModal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const projId = button.getAttribute('data-prj-id');
+        const projName = button.getAttribute('data-prj-name');
+        document.getElementById('removeTargetName').textContent = projName;
+        document.getElementById('removeTargetId').value = projId;
+    });
+    </script>
+
+</body>
+</html>

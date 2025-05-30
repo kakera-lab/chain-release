@@ -1,0 +1,71 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-added-large-files # 大きなファイルが追加されていないかチェック
+      - id: check-merge-conflict # マージコンフリクトマーカーが残っていないかチェック
+      - id: check-ast # PythonファイルがASTとして有効かチェック
+      - id: check-yaml # YAMLファイルの構文をチェック
+      - id: check-toml # TOMLファイルの構文をチェック
+      - id: check-json # JSONファイルの構文をチェック
+      - id: detect-private-key # プライベートキーが含まれていないか検出
+      - id: trailing-whitespace # 行末の不要な空白を削除
+        args: [--markdown-linebreak-ext=md]
+      - id: mixed-line-ending # 混在した改行コードをLFに統一
+      - id: end-of-file-fixer # ファイル末尾に改行がない場合に追加
+      - id: requirements-txt-fixer
+      - id: no-commit-to-branch # 特定のブランチへのコミットを防止
+        args: [-b, main, -b, develop]
+      - id: pretty-format-json
+        args:
+          [
+            --autofix,
+            --indent,
+            "2",
+            --no-ensure-ascii,
+            --top-keys,
+            "name,version",
+          ]
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.11.11
+    hooks:
+      - id: ruff # Pythonコードの静的解析、構文エラーやスタイルチェック
+        types_or: [python, pyi]
+        args: [--fix]
+      - id: ruff-format # Pythonコードの自動フォーマット
+        types_or: [python, pyi]
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.15.0
+    hooks:
+      - id: mypy # 型チェック、mypy.initから設定を読み込む
+        args: ["--config-file=mypy.ini"]
+
+  - repo: https://github.com/scop/pre-commit-shfmt
+    rev: v3.11.0-1
+    hooks:
+      - id: shfmt # シェルスクリプトのフォーマット
+      - id: shfmt-src # ソースコード用のシェルスクリプトフォーマット
+      - id: shfmt-docker # Dockerファイル用のシェルスクリプトフォーマット
+
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.45.0
+    hooks:
+      - id: markdownlint # Markdownファイルのフォーマットチェック
+
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.37.1
+    hooks:
+      - id: yamllint # YAMLファイルの構文チェック
+
+  - repo: https://github.com/tox-dev/pyproject-fmt
+    rev: v2.6.0
+    hooks:
+      - id: pyproject-fmt # pyproject.tomlのフォーマットを統一
+
+  - repo: https://github.com/tox-dev/tox-ini-fmt
+    rev: "1.5.0"
+    hooks:
+      - id: tox-ini-fmt
+        args: ["-p", "fix_lint,type"]

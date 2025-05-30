@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-{{ .Values.component }}
+  labels:
+    app: {{ .Release.Name }}-{{ .Values.component }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-{{ .Values.component }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-{{ .Values.component }}
+    spec:
+      containers:
+        - name: {{ .Values.component }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.ports.http }}
+            {{- if eq .Values.component "optuna" }}
+            - containerPort: {{ .Values.ports.grpc }}
+            {{- end }}
+          env:
+            - name: PRJ_ID
+              value: "{{ .Values.projectId }}"
+            - name: S3_ENDPOINT_URL
+              value: "{{ .Values.env.S3_ENDPOINT_URL }}"
+            - name: AWS_ACCESS_KEY_ID
+              value: "{{ .Values.env.AWS_ACCESS_KEY_ID }}"
+            - name: AWS_SECRET_ACCESS_KEY
+              value: "{{ .Values.env.AWS_SECRET_ACCESS_KEY }}"
+            - name: DB_STORAGE
+              value: "{{ .Values.env.DB_STORAGE }}"
+            - name: S3_PATH
+              value: "{{ .Values.env.S3_PATH }}"

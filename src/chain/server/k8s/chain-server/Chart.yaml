@@ -1,0 +1,10 @@
+apiVersion: v2 # v2を使用している場合
+name: chain-system # チャートの名前
+description: A MLFlow Helm chart for Kubernetes # 説明を追加
+type: application # チャートのタイプ。applicationまたはlibrary
+version: 1.0.0 # チャートのバージョン
+appVersion: "1.0" # アプリケーションのバージョン
+dependencies:
+  - name: argo-workflows
+    version: "0.22.2" # 適切なバージョン番号を指定
+    repository: "https://argoproj.github.io/argo-helm"

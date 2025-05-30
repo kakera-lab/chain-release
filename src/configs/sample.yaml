@@ -1,0 +1,9 @@
+exp: sample
+
+defaults:
+  - custom
+  - _self_ # use hydra 1.1 or later
+
+hydra:
+  searchpath:
+    - pkg://chain.configs

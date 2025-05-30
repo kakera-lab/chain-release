@@ -1,0 +1,55 @@
+# Run関連の設定
+debug: !!bool False
+local_save: !!bool True
+
+run:
+  mode: !!str local
+  seed: !!int 1000
+  name: ${now:%Y%m%d%H%M%S}
+  out_dir: volumes/${exp}/${.name}
+  config_dir: volumes/${exp}/${.name}/.configs
+  docs_dir: volumes/${exp}/${.name}/docs
+
+# 通知機能のON,OFF
+notification:
+  email: !!bool False
+  mattermost: !!bool False
+  agent: !!bool False
+
+# モデル保存に関する設定
+ckpt:
+  filename: !!str ${exp}
+  save_top_k: !!int 1
+
+# データモジュールに関する設定
+datamodule:
+  num_workers: !!int 7
+  batch_size: !!int 64
+  shuffle: !!bool False
+
+optuna:
+  study_name: ${exp}-${run.name}
+  n_jobs: !!int 2
+  n_trials: !!int 100
+
+# Hydraの設定
+hydra:
+  output_subdir: ".configs" # HydraがConfigを保存するDir
+  job:
+    name: chain
+    chdir: false # 作業ディレクトリが変更する機能を無効化
+  run: # ルートの保存先
+    dir: ${run.out_dir}
+  sweep: # Sweep機能を使った時の保存先
+    dir: ${run.out_dir}
+    subdir: ${hydra.job.override_dirname}
+# defaults:
+# uv add hydra-joblib-launcher
+#   - override hydra/launcher: joblib # (マルチランの時に)並列化の有効化
+#   - override hydra/job_logging: default # ログ関連の設定
+# uv add hydra-optuna-sweeper
+#   - override hydra/job_logging: optuna # ログ関連の設定
+# https://hydra.cc/docs/configure_hydra/job/
+# launcherを指定しないとシリアル実行になる
+# https://hydra.cc/docs/plugins/optuna_sweeper/
+# sweeperを指定するとマルチランのへ並列はsweeper次第
