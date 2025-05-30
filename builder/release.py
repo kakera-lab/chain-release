@@ -1,64 +1,68 @@
 import shutil
-from pathlib import Path
-from typing import Any
 
-from git import Repo
-from tomlkit import parse
-
-REPO = Repo(".")
-SRC_DIR = Path(".")
-PYPROJECT_PATH = SRC_DIR / "pyproject.toml"
+from . import settings
 
 
-def get_release_config() -> Any:
-    with PYPROJECT_PATH.open("r", encoding="utf-8") as f:
-        pyproject = parse(f.read())
-    release_cfg = pyproject.get("tool", {}).get("release", {})
-    return release_cfg.get("ignore", [])
+def checkout_branches(main_branch: str, release_branch: str) -> None:
+    settings.repo.git.checkout(main_branch)
+    settings.repo.remotes.origin.fetch()
+    branch_list = [ref.name for ref in settings.repo.remotes.origin.refs]
 
-
-def main(main: str = "main", release: str = "release") -> None:
-    REPO.git.checkout(main)
-    REPO.remotes.origin.fetch()
-    branch_list = [ref.name for ref in REPO.remotes.origin.refs]
-
-    if f"origin/{release}" in branch_list:
-        if release in REPO.heads:
-            REPO.git.checkout(release)
+    branch = f"origin/{release_branch}"
+    if branch in branch_list:
+        if release_branch in settings.repo.heads:
+            settings.repo.git.checkout(release_branch)
         else:
-            REPO.git.checkout("-b", release, "--track", f"origin/{release}")
+            settings.repo.git.checkout("-b", release_branch, "--track", branch)
     else:
-        REPO.git.checkout("-b", release)
+        settings.repo.git.checkout("-b", release_branch)
 
+
+def merge_branches(main_branch: str, release_branch: str) -> None:
     try:
-        REPO.git.merge(f"origin/{main}")
-        print(f"✅ Merged {main} into {release}")
+        settings.repo.git.merge(f"origin/{main_branch}")
+        print(f"✅ Merged {main_branch} into {release_branch}")
     except Exception as e:
         print(f"⚠️ Merge conflict or error: {e}")
 
-    for file_path in get_release_config():
-        path = SRC_DIR / file_path
+
+def clean_ignored_files() -> None:
+    for file_path in settings.ignore:
+        path = settings.project_root / file_path
         if path.is_dir():
             shutil.rmtree(path)
-            REPO.index.remove([file_path], r=True)
+            settings.repo.index.remove([file_path], r=True)
             print(f"Deleted directory {file_path}")
         elif path.is_file():
             path.unlink()
-            REPO.index.remove([file_path])
+            settings.repo.index.remove([file_path])
             print(f"Deleted file {file_path}")
-    old_path = SRC_DIR / "README.md"
-    new_path = SRC_DIR / "README.tpl.md"
-    if old_path.exists():
+
+
+def rename_readme() -> None:
+    old_path = settings.project_root / "README.md"
+    new_path = settings.project_root / f"README.{settings.prj_name}.md"
+    if settings.readme and old_path.exists():
         old_path.rename(new_path)
-        REPO.index.remove([old_path])
-        REPO.index.add([new_path])
+        settings.repo.index.remove([old_path])
+        settings.repo.index.add([new_path])
         print(f"Renamed {old_path} to {new_path}")
 
-    REPO.index.commit(f"Update branch '{release}'")
-    print(f"Updated and committed changes on branch '{release}'")
 
-    REPO.remotes.origin.push(refspec=f"{release}:{release}")
-    print(f"Pushed changes to origin/{release}")
+def commit_and_push(release_branch: str) -> None:
+    settings.repo.index.commit(f"Update branch '{release_branch}'")
+    print(f"Updated and committed changes on branch '{release_branch}'")
+
+    settings.repo.remotes.origin.push(refspec=f"{release_branch}:{release_branch}")
+    print(f"Pushed changes to origin/{release_branch}")
+
+
+def main(main: str = "main", release: str = "release") -> None:
+    checkout_branches(main, release)
+    merge_branches(main, release)
+    clean_ignored_files()
+    rename_readme()
+    commit_and_push(release)
 
 
 if __name__ == "__main__":

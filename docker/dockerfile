@@ -6,7 +6,7 @@ FROM ${IMAGE} AS base
 ARG VERSION="0.0.0"
 LABEL version=${VERSION}
 
-ENV PYTHON_VERSION="3.12.9" \
+ENV PYTHON_VERSION="3.12.10" \
     DEBIAN_FRONTEND=noninteractive \
     TZ=Asia/Tokyo
 
@@ -49,10 +49,10 @@ CMD ["/bin/bash"]
 # STAGE 2: user ----->
 FROM ${IMAGE} AS user
 
+ARG PASS="ubuntu"
 ARG UNAME="ubuntu"
 ARG UID=1000
 ARG GID=1000
-ARG PASS
 
 RUN groupadd -g ${GID} ${UNAME} && \
     useradd -u ${UID} -g ${UNAME} -G sudo -m ${UNAME} -s /bin/bash && \
@@ -66,9 +66,9 @@ CMD ["/bin/bash"]
 # STAGE 3: final ----->
 FROM base AS final
 
-ARG UNAME
-ARG UID
-ARG GID
+ARG UNAME="ubuntu"
+ARG UID=1000
+ARG GID=1000
 
 RUN groupadd -g ${GID} ${UNAME} && \
     useradd -u ${UID} -g ${UNAME} -G sudo -m ${UNAME} -s /bin/bash && \
@@ -88,9 +88,9 @@ CMD ["/bin/bash"]
 # STAGE 4: for vnc ----->
 FROM base AS vnc
 
-ARG UNAME
-ARG UID
-ARG GID
+ARG UNAME="ubuntu"
+ARG UID=1000
+ARG GID=1000
 
 ARG VNC_PASS="123456"
 ENV VNC_DISPLAY="1" \

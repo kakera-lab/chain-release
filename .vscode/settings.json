@@ -105,7 +105,6 @@
     "metallb",
     "minio",
     "mlflow",
-    "mlproject",
     "mlruns",
     "mpld",
     "multirun",
@@ -145,7 +144,6 @@
     "scikit",
     "scipy",
     "seaborn",
-    "secho",
     "setuptools",
     "shfmt",
     "subdir",
@@ -162,7 +160,6 @@
     "uvicorn",
     "venv",
     "virtualenvs",
-    "webui",
     "zmax",
     "zmin",
     "Zotero"

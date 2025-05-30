@@ -4,7 +4,7 @@ import sys
 import click
 
 from .. import settings
-from . import add, agent, get, init, modify, remove, server, set, webui
+from . import add, agent, get, init, modify, remove, reset, server, set, webui
 
 # コマンドマッピング
 COMMANDS = {
@@ -16,6 +16,7 @@ COMMANDS = {
     "modify": modify.main,
     "up": webui.main,
     "down": webui.main,
+    "reset": reset.main,
 }
 logger = logging.getLogger(__name__)
 

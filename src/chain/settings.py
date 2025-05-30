@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 # command
 webui = ("prj", "mlflow", "optuna", "chaser")
-info_targets = tuple("dvc") + webui
+info_targets = webui + ("dvc",)
 targets = info_targets + ("server", "agent")
 # local : chain + storage on docker
 # docker: only chain on docker

@@ -28,7 +28,7 @@ Python 開発用のテンプレート
 - **仮想環境**: [Docker](https://www.docker.com/ja-jp/products/docker-desktop/)
 - **エディター**: [VSCode](https://azure.microsoft.com/ja-jp/products/visual-studio-code)
 - **コード管理**: [git](https://git-scm.com/docs), [pre-commit](https://pre-commit.com/)
-- **Python 環境**: Python 3.12.9 (2025/03/31)
+- **Python 環境**: Python 3.12.10 (2025/05/30)
 - **Python バージョン / パッケージ管理**: [uv](https://docs.astral.sh/uv/)
 - **Python リンター / フォーマッター**: [ruff](https://docs.astral.sh/ruff/)
 - **Python 型解析**: [mypy](https://mypy.readthedocs.io/en/stable/)
@@ -114,7 +114,7 @@ git add .
 git commit -m "template init"
 git push origin main
 # Pythonプロジェクトの有効化
-uv init --app --package --python 3.12.9 --vcs none
+uv init --app --package --python 3.12.10 --vcs none
 git add .
 git commit -m "project init"
 git push origin main
@@ -167,7 +167,7 @@ pre-commit autoupdate
 
 ```sh
 # プロジェクトルートで実行
-python builder/docs.py
+python -m builder.docs
 ```
 
 ### Docker コンテナのビルド
@@ -177,7 +177,7 @@ python builder/docs.py
 # プライベートコンテナレジストリにログイン
 docker login registry.kakera-lab.synology.me
 # ビルド + プッシュ
-python builder/container.py
+python -m builder.container
 ```
 
 - 下記の記述例のように`pyproject.toml`に追加する
@@ -214,24 +214,23 @@ platforms = ["linux/amd64", "linux/arm64"]
 
 ```sh
 # 現在のバージョンで zip を作成
-python builder/snapshot.py
+python -m builder.snapshot
 # セマンティックバージョンを更新して zip を作成
-python builder/snapshot.py [major|minor|patch]
+python -m builder.snapshot [major|minor|patch]
 # リリースブランチの更新
-python builder/release.py
+python -m builder.release
 ```
 
 - 下記の記述例のように`pyproject.toml`に追加する
   - 記載がない場合はデフォルト設定が使用される
 - `.gitignore` に記載されたパスは zip に含まれない
-  - `recursive = true` とするとルールが再帰的に適用される
-    - `false`（デフォルト）の場合、プロジェクトルート配下のみが対象
+- `readme = true`とするとこで README.md を`README.<prj_name>.md`にリネームする。
 - `ignore = []` には、追加で除外したいファイル・ディレクトリのパスをルート相対で指定する
   - パスの末尾に `/` があるとディレクトリとして扱われる
 
 ```toml
 [tool.release]
-recursive = true
+readme = true
 ignore = [
     "src/",
     "pyproject.toml",

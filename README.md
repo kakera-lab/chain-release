@@ -66,7 +66,9 @@ Chain では、研究を以下の階層構造で定義します。
 
 ## インストール
 
-- クローンして pip インストール
+```sh
+uv pip install "git+ssh://git@gitlab.kakera-lab.synology.me:9022/kakera-lab/chain.git@main"
+```
 
 ## DVC の初期化(データの管理もする場合)
 

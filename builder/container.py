@@ -1,51 +1,62 @@
 import logging
-from pathlib import Path
 
-import toml  # type: ignore
 from python_on_whales import docker
+
+from . import settings
 
 logger = logging.getLogger(__name__)
 
 
 def main() -> None:
-    project_root = Path(__file__).parent.parent
-    pyproject_path = project_root / "pyproject.toml"
-    pyproject = toml.load(pyproject_path)
+    builder = None  # 初期化して finally ブロックでの参照を安全にする
     try:
         builder = docker.buildx.create(
-            platforms=pyproject["tool"]["docker"]["platforms"],
-            name=f"builder_{pyproject['project']['name']}",
+            platforms=settings.platforms,
+            name=f"builder_{settings.prj_name}",
             use=True,
         )
-        for name, cfg in pyproject["tool"]["docker"]["dockerfiles"].items():
-            build_args = {"VERSION": pyproject["project"]["version"]}
-            tag = f"{pyproject['tool']['docker']['registry']}/{name}"
+        for name, cfg in settings.dockerfiles.items():
+            build_args = {"VERSION": settings.version}
+            tag = f"{settings.registry}/{name}"
+
             if isinstance(cfg, str):
                 dockerfile = cfg
                 target = None
+
             elif isinstance(cfg, dict):
-                dockerfile = cfg.pop("FILE")
+                try:
+                    dockerfile = cfg.pop("FILE")
+                except KeyError as err:
+                    raise ValueError(f"Missing 'FILE' key in config for {name}") from err
                 target = cfg.pop("TARGET", None)
-                build_args |= cfg
+                build_args |= cfg  # 他のビルド引数を追加
+
             else:
-                raise TypeError
+                raise TypeError(f"Invalid type for dockerfile config: {type(cfg)}")
 
             docker.buildx.build(
                 builder=builder,
                 context_path=".",
                 file=dockerfile,
                 tags=[tag],
-                cache=pyproject["tool"]["docker"]["cache"],
-                platforms=pyproject["tool"]["docker"]["platforms"],
-                push=pyproject["tool"]["docker"]["push"],
+                cache=settings.cache,
+                platforms=settings.platforms,
+                push=settings.push,
                 build_args=build_args,
                 target=target,
             )
+            logger.info(f"✅ Built and pushed: {tag}")
 
     except Exception as e:
-        logger.error(f"Error: {e}")
+        logger.error(f"❌ Error during build: {e}", exc_info=True)
+
     finally:
-        docker.buildx.remove(builder)
+        if builder is not None:
+            try:
+                docker.buildx.remove(builder)
+                logger.info(f"🧹 Removed builder: {builder.name}")
+            except Exception as cleanup_err:
+                logger.warning(f"⚠️ Failed to clean up builder: {cleanup_err}", exc_info=True)
 
 
 if __name__ == "__main__":
